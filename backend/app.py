@@ -28,6 +28,7 @@ chosen_answer = random.choice(fruit_list)
 def ask():
     data = request.get_json()
     question = data.get("question", "")
+    answer = data.get("answer", "")
 
     # GPTに質問を与えてYes/No回答させる
     prompt = f"""
