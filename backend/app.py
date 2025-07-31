@@ -56,6 +56,10 @@ def guess():
     correct = (guess == chosen_answer)
     return jsonify({"correct": correct})
 
+@app.route("/", methods=["GET"])
+def index():
+    return "Backend is running!", 200
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
+    
