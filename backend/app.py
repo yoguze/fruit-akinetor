@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import random
-import openai
+from openai import OpenAI
 import os
 from dotenv import load_dotenv
+
+client = OpenAI()
 
 # .envからAPIキーを読み込む
 load_dotenv()
@@ -41,12 +43,12 @@ def ask():
 答え：
 """
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             temperature=0,
             messages=[{"role": "user", "content": prompt}]
         )
-        answer = response["choices"][0]["message"]["content"].strip()
+        answer = response.choices[0].message.content
         return jsonify({"answer": answer})
 
     except Exception as e:
