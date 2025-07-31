@@ -9,7 +9,7 @@ client = OpenAI()
 
 # .envからAPIキーを読み込む
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+OpenAI.api_key = os.getenv("OPENAI_API_KEY")
 
 # 果物のリスト（20個）
 fruit_list = [
