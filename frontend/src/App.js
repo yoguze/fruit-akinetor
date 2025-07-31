@@ -28,7 +28,7 @@ function App() {
 
   const handleAskQuestion = async (question) => {
     // プロンプト送信：仮にバックエンドに送る場合
-    const response = await fetch("https://fruit-akinetor.onrender.com/ask", {
+    const response = await fetch("https://fruit-akinetor-engine.onrender.com//ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question, answer: chosenAnswer }) // フロントから答えも送信
