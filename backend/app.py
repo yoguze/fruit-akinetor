@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# 果物のリスト（25個）
+# 果物のリスト（20個）
 fruit_list = [
     "りんご", "バナナ", "ぶどう", "みかん", "もも",
   "さくらんぼ", "スイカ", "メロン", "キウイ", "パイナップル",
@@ -27,6 +27,7 @@ chosen_answer = random.choice(fruit_list)
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.get_json()
+    print("✅ 受け取ったデータ:", data)
     question = data.get("question", "")
     answer = data.get("answer", "")
 
@@ -34,7 +35,7 @@ def ask():
     prompt = f"""
 あなたは果物アキネーターAIです。
 正解の果物は「{chosen_answer}」です。
-以下の質問に「はい」または「いいえ」で正確に答えてください：
+以下の質問に「はい」または「いいえ」か「わからない」で正確に答えてください：
 
 質問: {question}
 答え：
@@ -47,7 +48,9 @@ def ask():
         )
         answer = response["choices"][0]["message"]["content"].strip()
         return jsonify({"answer": answer})
+
     except Exception as e:
+        print("❌ エラー発生:", str(e))
         return jsonify({"error": str(e)}), 500
 
 @app.route("/guess", methods=["POST"])
@@ -60,6 +63,9 @@ def guess():
 @app.route("/", methods=["GET"])
 def index():
     return "Backend is running!", 200
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  # Render用にPORT環境変数を取得
