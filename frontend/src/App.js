@@ -20,6 +20,10 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // 二重送信の防止用
+  const [submittingAsk, setSubmittingAsk] = useState(false);
+  const [submittingGuess, setSubmittingGuess] = useState(false);
+
   // タイトルに戻る（初期化）
   const returnToTitle = () => {
     setGameStage("start");
@@ -27,6 +31,8 @@ function App() {
     setChosenAnswer("");
     setChatHistory([]);
     setError("");
+    setSubmittingAsk(false);
+    setSubmittingGuess(false);
   };
 
   // ゲーム開始（セッション作成）
@@ -54,16 +60,33 @@ function App() {
     }
   };
 
-  // 質問送信
+  // 質問送信（gameStageガード＋二重送信防止＋400ハンドリング）
   const handleAskQuestion = async (question) => {
-    if (!question.trim() || !sessionId) return;
+    if (gameStage !== "playing" || !question.trim() || !sessionId || submittingAsk) return;
+    setSubmittingAsk(true);
     try {
       const res = await fetch(`${API_BASE}/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, question }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      if (!res.ok) {
+        // 400系の詳細をUIに出す
+        if (res.status === 400) {
+          const body = await res.json().catch(() => ({}));
+          const msg = body?.error || "Bad Request";
+          setError(`質問に失敗: ${msg}`);
+          // セッション無効ならタイトルへ戻す
+          if (msg.toLowerCase().includes("invalid session")) {
+            setGameStage("start");
+            setSessionId("");
+          }
+          return;
+        }
+        throw new Error(`HTTP ${res.status}`);
+      }
+
       const data = await res.json();
       setChatHistory((prev) => [
         ...prev,
@@ -73,30 +96,48 @@ function App() {
     } catch (e) {
       console.error("❌ 質問送信エラー:", e);
       setError(`質問に失敗しました: ${String(e)}`);
+    } finally {
+      setSubmittingAsk(false);
     }
   };
 
-  // 解答送信（正解→終了画面へ。不正解のみ alert）
+  // 解答送信（gameStageガード＋二重送信防止＋400ハンドリング）
   const handleGuess = async (guess) => {
-    if (!guess.trim() || !sessionId) return;
+    if (gameStage !== "playing" || !guess.trim() || !sessionId || submittingGuess) return;
+    setSubmittingGuess(true);
     try {
       const res = await fetch(`${API_BASE}/guess`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, guess }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
 
+      if (!res.ok) {
+        if (res.status === 400) {
+          const body = await res.json().catch(() => ({}));
+          const msg = body?.error || "Bad Request";
+          setError(`解答に失敗: ${msg}`);
+          if (msg.toLowerCase().includes("invalid session")) {
+            setGameStage("start");
+            setSessionId("");
+          }
+          return;
+        }
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
       if (data.correct) {
         setChosenAnswer(guess);
-        setGameStage("finished"); // 終了画面に遷移
+        setGameStage("finished"); // 終了画面に遷移（正解時はアラートなし）
         return;
       }
       alert("❌ 残念、不正解です。");
     } catch (e) {
       console.error("❌ 解答送信エラー:", e);
       setError(`解答に失敗しました: ${String(e)}`);
+    } finally {
+      setSubmittingGuess(false);
     }
   };
 
@@ -122,6 +163,8 @@ function App() {
           <QuestionForm onSubmit={handleAskQuestion} />
           <ChatHistory history={chatHistory} />
           <AnswerForm onSubmit={handleGuess} />
+          {/* 送信中の見た目（任意） */}
+          {(submittingAsk || submittingGuess) && <p>送信中…</p>}
         </>
       )}
 
@@ -136,3 +179,4 @@ function App() {
 }
 
 export default App;
+
