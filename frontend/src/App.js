@@ -77,12 +77,17 @@ function App() {
 
   return (
     <div className="App">
+      <h1>🍎 果物アキネーター</h1>
       {gameStage === "start" && (
-        <button onClick={startGame}>Start</button>
+        <div style={{ textAlign: "center" }}>
+          <p>はい / いいえ で果物を当てよう！</p>
+          <button onClick={startGame}>Start</button>
+        </div>
       )}
 
       {gameStage === "playing" && (
         <>
+          <h2>🎯 質問して果物を当てよう！</h2>
           <QuestionForm onSubmit={handleQuestionSubmit} />
           <ChatHistory history={chatHistory} />
           <AnswerForm onSubmit={handleAnswerSubmit} />
@@ -91,8 +96,10 @@ function App() {
 
       {gameStage === "end" && (
         <>
-          <p>ゲーム終了</p>
-          <button onClick={startGame}>もう一度</button>
+        <div className="finish-screen">
+          <h2>🎉 正解！答えは「{chosenAnswer}」でした！</h2>
+          <button onClick={returnToTitle}>タイトルに戻る</button>
+        </div>
         </>
       )}
     </div>
