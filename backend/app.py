@@ -4,65 +4,75 @@ import random
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+import uuid
 
-client = OpenAI()
-
-# .envからAPIキーを読み込む
 load_dotenv()
-OpenAI.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# 果物のリスト（20個）
-fruit_list = [
-    "りんご", "バナナ", "ぶどう", "みかん", "もも",
-  "さくらんぼ", "スイカ", "メロン", "キウイ", "パイナップル",
-  "レモン", "ライム", "マンゴー", "パパイヤ", "ブルーベリー",
-  "いちご", "グレープフルーツ", "なし", "かき", "ざくろ"
-]
-
-# アプリ設定
 app = Flask(__name__)
 CORS(app)
 
-# 正解の果物（セッション的に1つ固定で保持）
-chosen_answer = random.choice(fruit_list)
+# ゲームセッション保持用
+sessions = {}
+
+fruit_list = [
+    "りんご", "バナナ", "ぶどう", "みかん", "もも",
+    "さくらんぼ", "スイカ", "メロン", "キウイ", "パイナップル",
+    "レモン", "ライム", "マンゴー", "パパイヤ", "ブルーベリー",
+    "いちご", "グレープフルーツ", "なし", "かき", "ざくろ"
+]
+
+@app.route("/start", methods=["POST"])
+def start():
+    session_id = str(uuid.uuid4())
+    chosen = random.choice(fruit_list)
+    sessions[session_id] = chosen
+    print(f"🎯 新しいゲーム開始: {session_id} → {chosen}")
+    return jsonify({"sessionId": session_id})
 
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.get_json()
-    print("✅ 受け取ったデータ:", data)
+    session_id = data.get("sessionId")
     question = data.get("question", "")
-    answer = data.get("answer", "")
 
-    # GPTに質問を与えてYes/No回答させる
+    if session_id not in sessions:
+        return jsonify({"error": "Invalid session"}), 400
+
+    fruit = sessions[session_id]
     prompt = f"""
 あなたは果物に関するアキネーターです。
-ユーザーからの質問「{question}」に対して、対象の果物「{answer}」に当てはまるかどうかを考えてください。
-出力は必ず次のいずれか1語で答えてください：
-「はい」または「いいえ」。
-
-それ以外の表現や解説は禁止です。例外や補足も不要です。
-
-質問: {question}
-答え：
+対象の果物は「{fruit}」です。
+ユーザーからの質問「{question}」に対して、
+必ず「はい」または「いいえ」のみで答えてください。
 """
+
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",  # 精度重視ならここを変更
             temperature=0,
-            messages=[{"role": "user", "content": prompt}]
+            messages=[
+                {"role": "system", "content": "あなたは果物のアキネーター。必ず『はい』か『いいえ』のみで回答。"},
+                {"role": "user", "content": prompt}
+            ]
         )
-        answer = response.choices[0].message.content
+        answer = response.choices[0].message.content.strip()
         return jsonify({"answer": answer})
 
     except Exception as e:
-        print("❌ エラー発生:", str(e))
+        print("❌ エラー:", str(e))
         return jsonify({"error": str(e)}), 500
 
 @app.route("/guess", methods=["POST"])
 def guess():
     data = request.get_json()
+    session_id = data.get("sessionId")
     guess = data.get("guess", "").strip()
-    correct = (guess == chosen_answer)
+
+    if session_id not in sessions:
+        return jsonify({"error": "Invalid session"}), 400
+
+    correct = (guess == sessions[session_id])
     return jsonify({"correct": correct})
 
 @app.route("/", methods=["GET"])
@@ -72,6 +82,3 @@ def index():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Render用にPORT環境変数を取得
-    app.run(host="0.0.0.0", port=port)
