@@ -9,7 +9,7 @@ const API_BASE =
   process.env.REACT_APP_API_BASE ||
   (typeof window !== "undefined" &&
   window.location.hostname.endsWith("onrender.com")
-    ? "https://fruit-akineter-engine.onrender.com" // ←あなたのbackend URLに合わせて
+    ? "https://fruit-akinetor-engine.onrender.com" // ←あなたのbackend URLに合わせて
     : "http://localhost:5000");
 
 function App() {
