@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "./App.css";
-import ChatHistory from "./chathistory";
-import QuestionForm from "./QuestionForm";
-import AnswerForm from "./AnswerForm";
+import ChatHistory from "./components/chathistory";
+import QuestionForm from "./components/QuestionForm";
+import AnswerForm from "./components/AnswerForm";
 
 function App() {
   const [sessionId, setSessionId] = useState("");
