@@ -38,22 +38,17 @@ def ask():
 
     if session_id not in sessions:
         return jsonify({"error": "Invalid session"}), 400
-
     fruit = sessions[session_id]
-    prompt = f"""
-あなたは果物に関するアキネーターです。
-対象の果物は「{fruit}」です。
-ユーザーからの質問「{question}」に対して、
-必ず「はい」または「いいえ」のみで答えてください。
-"""
-
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # 精度重視ならここを変更
+            model="gpt-4o-mini",
             temperature=0,
             messages=[
-                {"role": "system", "content": "あなたは果物のアキネーター。必ず『はい』か『いいえ』のみで回答。"},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": f"あなたは果物のアキネーター。対象は「{fruit}」。必ず『はい』か『いいえ』のみで答える。"
+                },
+                {"role": "user", "content": question}
             ]
         )
         answer = response.choices[0].message.content.strip()
@@ -62,6 +57,7 @@ def ask():
     except Exception as e:
         print("❌ エラー:", str(e))
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/guess", methods=["POST"])
 def guess():
@@ -73,6 +69,7 @@ def guess():
         return jsonify({"error": "Invalid session"}), 400
 
     correct = (guess == sessions[session_id])
+    del sessions[session_id]
     return jsonify({"correct": correct})
 
 @app.route("/", methods=["GET"])
