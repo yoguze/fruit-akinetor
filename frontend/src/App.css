@@ -5,14 +5,33 @@
   margin: auto;
   background-color: #fff8f0;
   border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
 }
 
 h1 {
   text-align: center;
   margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  color: #ff6f00;
 }
 
+/* ボタン共通 */
+button {
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  background-color: #ff9800;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #e68900;
+}
+
+/* 質問フォーム / 回答フォーム */
 .question-form,
 .answer-form {
   display: flex;
@@ -24,26 +43,44 @@ input {
   flex: 1;
   padding: 0.5rem;
   font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 
-button {
-  padding: 0.5rem 1rem;
-  font-weight: bold;
-  cursor: pointer;
+input:focus {
+  outline: none;
+  border-color: #ff9800;
+  box-shadow: 0 0 3px rgba(255, 152, 0, 0.7);
 }
 
+/* チャット履歴 */
 .chat-history {
   background: #fff;
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
   border: 1px solid #ddd;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .chat-entry {
   margin-bottom: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
 }
 
+.chat-entry.user {
+  background-color: #e3f2fd;
+  align-self: flex-end;
+}
+
+.chat-entry.assistant {
+  background-color: #f1f8e9;
+  align-self: flex-start;
+}
+
+/* 結果表示 */
 .correct {
   color: green;
   font-weight: bold;
