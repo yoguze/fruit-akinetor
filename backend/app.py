@@ -1,5 +1,4 @@
 # app.py （完全版）
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import random
@@ -16,7 +15,9 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")  # 必要なら環境変数で変更可
-FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "https://fruit-akineter-site.onrender.com")
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN")
+if not FRONTEND_ORIGIN:
+    raise RuntimeError("FRONTEND_ORIGIN is not set in environment variables.")
 
 if not OPENAI_API_KEY:
     raise RuntimeError("OPENAI_API_KEY が未設定です。Render の Environment に追加してください。")
